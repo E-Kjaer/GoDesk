@@ -27,6 +27,7 @@ func addRoutes() *http.ServeMux {
 
 	mux.HandleFunc("POST /manufacturers", createManufacturerHandler)
 	mux.HandleFunc("GET /manufacturers/{id}", getManufacturerHandler)
+	mux.HandleFunc("GET /manufacturers", getManufacturersHandler)
 	return mux
 }
 
@@ -219,6 +220,19 @@ func getManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	j, err := json.Marshal(manufacturer)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func getManufacturersHandler(w http.ResponseWriter, r *http.Request) {
+	manufacturers, err := data.GetManufacturers(db)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	j, err := json.Marshal(manufacturers)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

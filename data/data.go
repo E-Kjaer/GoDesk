@@ -240,3 +240,20 @@ func GetManufacturer(db *sql.DB, id int) (models.Manufacturer, error) {
 	}
 	return manufacturer, nil
 }
+
+func GetManufacturers(db *sql.DB) ([]models.Manufacturer, error) {
+	var manufacturers []models.Manufacturer
+	rows, err := db.Query("SELECT * FROM manufacturers")
+	if err != nil {
+		return manufacturers, err
+	}
+	for rows.Next() {
+		var manufacturer models.Manufacturer
+		err := rows.Scan(&manufacturer.Id, &manufacturer.Name, &manufacturer.Phone)
+		if err != nil {
+			return manufacturers, err
+		}
+		manufacturers = append(manufacturers, manufacturer)
+	}
+	return manufacturers, nil
+}
