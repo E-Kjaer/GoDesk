@@ -169,3 +169,11 @@ func UpdateCustomer(db *sql.DB, customer models.Customer) error {
 	}
 	return nil
 }
+
+func DeleteCustomer(db *sql.DB, id int) error {
+	_, err := db.Exec("DELETE FROM customers WHERE id = $1", id)
+	if err != nil {
+		return err
+	}
+	return nil
+}

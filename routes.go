@@ -22,6 +22,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("POST /customers", createCustomerHandler)
 	mux.HandleFunc("GET /customers/{id}", getCustomerHandler)
 	mux.HandleFunc("PUT /customers", updateCustomerHandler)
+	mux.HandleFunc("DELETE /customers/{id}", deleteCustomerHandler)
 	return mux
 }
 
@@ -163,4 +164,17 @@ func updateCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Product updated successfully")))
+}
+
+func deleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = data.DeleteCustomer(db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Customer deleted successfully - Customer Id: %d", id)))
 }
