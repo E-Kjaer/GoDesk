@@ -29,6 +29,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /manufacturers/{id}", getManufacturerHandler)
 	mux.HandleFunc("GET /manufacturers", getManufacturersHandler)
 	mux.HandleFunc("PUT /manufacturers", updateManufacturerHandler)
+	mux.HandleFunc("DELETE /manufacturers/{id}", deleteManufacturerHandler)
 	return mux
 }
 
@@ -252,4 +253,17 @@ func updateManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Manufacturer updated successfully")))
+}
+
+func deleteManufacturerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	err = data.DeleteManufacturer(db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Manufacturer deleted successfully")))
 }
