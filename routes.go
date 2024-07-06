@@ -26,6 +26,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("DELETE /customers/{id}", deleteCustomerHandler)
 
 	mux.HandleFunc("POST /manufacturers", createManufacturerHandler)
+	mux.HandleFunc("GET /manufacturers/{id}", getManufacturerHandler)
 	return mux
 }
 
@@ -206,4 +207,21 @@ func createManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("Manufacturer successfully created - Manufacturer Id: %d", id)))
+}
+
+func getManufacturerHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	manufacturer, err := data.GetManufacturer(db, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	j, err := json.Marshal(manufacturer)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
 }

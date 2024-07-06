@@ -227,3 +227,16 @@ func CreateManufacturer(db *sql.DB, manufacturer models.Manufacturer) (int, erro
 	}
 	return id, nil
 }
+
+func GetManufacturer(db *sql.DB, id int) (models.Manufacturer, error) {
+	var manufacturer models.Manufacturer
+	row := db.QueryRow("SELECT * FROM manufacturers WHERE id = $1", id)
+	if row.Err() != nil {
+		return manufacturer, row.Err()
+	}
+	err := row.Scan(&manufacturer.Id, &manufacturer.Name, &manufacturer.Phone)
+	if err != nil {
+		return manufacturer, err
+	}
+	return manufacturer, nil
+}
