@@ -16,23 +16,19 @@ func SetupDB(db *sql.DB) {
 	db.Exec("CREATE TABLE IF NOT EXISTS products (" +
 		"ID SERIAL PRIMARY KEY," +
 		"name VARCHAR(255) NOT NULL," +
-		"price FLOAT," +
+		"price FLOAT NOT NULL," +
 		"size VARCHAR(255)," +
 		"color VARCHAR(255));")
-
-	db.Exec("CREATE TABLE IF NOT EXISTS addresses (" +
-		"ID SERIAL PRIMARY KEY," +
-		"street VARCHAR(255) NOT NULL," +
-		"city VARCHAR(255) NOT NULL," +
-		"country VARCHAR(255) NOT NULL);")
 
 	db.Exec("CREATE TABLE IF NOT EXISTS customers (" +
 		"ID SERIAL PRIMARY KEY," +
 		"firstName VARCHAR(255) NOT NULL," +
 		"lastName VARCHAR(255) NOT NULL," +
-		"address INT references addresses(ID)," +
 		"phoneNumber VARCHAR(255) NOT NULL," +
-		"email VARCHAR(255) NOT NULL);")
+		"email VARCHAR(255) NOT NULL," +
+		"street VARCHAR(255)," +
+		"city VARCHAR(255)," +
+		"country VARCHAR(255));")
 
 	db.Exec("CREATE TABLE IF NOT EXISTS bikes (" +
 		"productID INT references products(id) NOT NULL," +
@@ -96,7 +92,7 @@ func GetProducts(db *sql.DB) ([]models.Product, error) {
 	return products, nil
 }
 
-func UpdateProduct(db *sql.DB, product *models.Product) error {
+func UpdateProduct(db *sql.DB, product models.Product) error {
 	err := db.QueryRow("UPDATE products "+
 		"SET name = $1, price = $2, size = $3, color = $4 "+
 		"WHERE id = $5", product.Name, product.Price, product.Size, product.Color, product.Id)
@@ -116,8 +112,8 @@ func DeleteProduct(db *sql.DB, id int) error {
 
 // Methods for performing CRUD on customer table
 func CreateCustomer(db *sql.DB, customer *models.Customer) (int, error) {
-	row := db.QueryRow("INSERT INTO customers(firstname, lastname, phonenumber, email) VALUES ("+
-		"$1, $2, $3, $4) RETURNING id;", customer.FirstName, customer.LastName, customer.Phone, customer.Email)
+	row := db.QueryRow("INSERT INTO customers(firstname, lastname, phonenumber, email, street, city, country) VALUES ("+
+		"$1, $2, $3, $4, $5, $6, $7) RETURNING id;", customer.FirstName, customer.LastName, customer.Phone, customer.Email, customer.Address.Street, customer.Address.City, customer.Address.Country)
 	if row.Err() != nil {
 		return -1, row.Err()
 	}
@@ -129,29 +125,25 @@ func CreateCustomer(db *sql.DB, customer *models.Customer) (int, error) {
 	return id, nil
 }
 
-// TODO IDEA: Do a join in the get, to gather the associated addresses, only add them if the fields aren't empty.
 func GetCustomer(db *sql.DB, id int) (models.Customer, error) {
 	var customer models.Customer
-	var address sql.NullInt32
+	var addressStreet sql.NullString
+	var addressCity sql.NullString
+	var addressCountry sql.NullString
+
 	row := db.QueryRow("SELECT * FROM customers WHERE id = $1", id)
 	if row.Err() != nil {
 		return customer, row.Err()
 	}
-	err := row.Scan(&customer.Id, &customer.FirstName, &customer.LastName, &address, &customer.Phone, &customer.Email)
+
+	err := row.Scan(&customer.Id, &customer.FirstName, &customer.LastName, &customer.Phone, &customer.Email, &addressStreet, &addressCity, &addressCountry)
 	if err != nil {
 		return customer, err
 	}
-	// Only if the customer has an associated address, is the address fetched
-	if address.Valid {
-		customer.Address, err = GetAddress(db, int(address.Int32))
-		if err != nil {
-			return customer, err
-		}
-	}
-	return customer, nil
-}
 
-func GetAddress(db *sql.DB, id int) (models.Address, error) {
-	var address models.Address
-	return address, nil
+	customer.Address.Street = addressStreet.String
+	customer.Address.City = addressCity.String
+	customer.Address.Country = addressCountry.String
+
+	return customer, nil
 }
