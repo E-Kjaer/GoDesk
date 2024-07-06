@@ -30,7 +30,6 @@ type Customer struct {
 }
 
 type Address struct {
-	Id      int    `json:"id"`
 	Street  string `json:"street"`
 	City    string `json:"city"`
 	Country string `json:"country"`
