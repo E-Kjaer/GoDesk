@@ -21,6 +21,7 @@ func addRoutes() *http.ServeMux {
 
 	mux.HandleFunc("POST /customers", createCustomerHandler)
 	mux.HandleFunc("GET /customers/{id}", getCustomerHandler)
+	mux.HandleFunc("GET /customers", getCustomersHandler)
 	mux.HandleFunc("PUT /customers", updateCustomerHandler)
 	mux.HandleFunc("DELETE /customers/{id}", deleteCustomerHandler)
 	return mux
@@ -109,7 +110,7 @@ func deleteProductHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("Product deleted successfully")))
+	w.Write([]byte(fmt.Sprintf("Product deleted successfully - Product Id: %d", id)))
 }
 
 // Functions for manipulating customers
@@ -146,6 +147,19 @@ func getCustomerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func getCustomersHandler(w http.ResponseWriter, r *http.Request) {
+	customers, err := data.GetCustomers(db)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	j, err := json.Marshal(customers)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
 }

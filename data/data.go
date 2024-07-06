@@ -90,7 +90,12 @@ func GetProducts(db *sql.DB) ([]models.Product, error) {
 	if err != nil {
 		return products, err
 	}
-	defer rows.Close()
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
 
 	for rows.Next() {
 		var product models.Product
@@ -158,6 +163,36 @@ func GetCustomer(db *sql.DB, id int) (models.Customer, error) {
 	customer.Address.Country = addressCountry.String
 
 	return customer, nil
+}
+
+func GetCustomers(db *sql.DB) ([]models.Customer, error) {
+	var customers []models.Customer
+	rows, err := db.Query("SELECT * FROM customers")
+	if err != nil {
+		return customers, err
+	}
+	defer func(rows *sql.Rows) {
+		err := rows.Close()
+		if err != nil {
+
+		}
+	}(rows)
+
+	for rows.Next() {
+		var customer models.Customer
+		var addressStreet sql.NullString
+		var addressCity sql.NullString
+		var addressCountry sql.NullString
+		err := rows.Scan(&customer.Id, &customer.FirstName, &customer.LastName, &customer.Phone, &customer.Email, &addressStreet, &addressCity, &addressCountry)
+		if err != nil {
+			return customers, err
+		}
+		customer.Address.Street = addressStreet.String
+		customer.Address.City = addressCity.String
+		customer.Address.Country = addressCountry.String
+		customers = append(customers, customer)
+	}
+	return customers, nil
 }
 
 func UpdateCustomer(db *sql.DB, customer models.Customer) error {
