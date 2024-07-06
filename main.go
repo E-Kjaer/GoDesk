@@ -13,10 +13,11 @@ var db *sql.DB
 
 func main() {
 	router := addRoutes()
+	wrappedRouter := JSONWrapper{router}
 	db = initDB()
 	server := &http.Server{
 		Addr:    ":8000",
-		Handler: router,
+		Handler: &wrappedRouter,
 	}
 	log.Fatal(server.ListenAndServe())
 }
