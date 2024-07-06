@@ -257,3 +257,12 @@ func GetManufacturers(db *sql.DB) ([]models.Manufacturer, error) {
 	}
 	return manufacturers, nil
 }
+
+func UpdateManufacturer(db *sql.DB, manufacturer models.Manufacturer) error {
+	err := db.QueryRow("UPDATE manufacturers "+
+		"SET name = $1, phone = $2 WHERE id = $3;", manufacturer.Name, manufacturer.Phone, manufacturer.Id)
+	if err.Err() != nil {
+		return err.Err()
+	}
+	return nil
+}
