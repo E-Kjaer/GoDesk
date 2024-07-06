@@ -128,7 +128,7 @@ func DeleteProduct(db *sql.DB, id int) error {
 }
 
 // Methods for performing CRUD on customer table
-func CreateCustomer(db *sql.DB, customer *models.Customer) (int, error) {
+func CreateCustomer(db *sql.DB, customer models.Customer) (int, error) {
 	row := db.QueryRow("INSERT INTO customers(firstname, lastname, phonenumber, email, street, city, country) VALUES ("+
 		"$1, $2, $3, $4, $5, $6, $7) RETURNING id;", customer.FirstName, customer.LastName, customer.Phone, customer.Email, customer.Address.Street, customer.Address.City, customer.Address.Country)
 	if row.Err() != nil {
@@ -211,4 +211,19 @@ func DeleteCustomer(db *sql.DB, id int) error {
 		return err
 	}
 	return nil
+}
+
+// Methods for performing CRUD on customer table
+func CreateManufacturer(db *sql.DB, manufacturer models.Manufacturer) (int, error) {
+	row := db.QueryRow("INSERT INTO manufacturers (name, phone) VALUES ($1, $2) RETURNING id;", manufacturer.Name, manufacturer.Phone)
+	if row.Err() != nil {
+		return -1, row.Err()
+	}
+
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		return -1, err
+	}
+	return id, nil
 }

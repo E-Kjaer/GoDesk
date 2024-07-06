@@ -24,6 +24,8 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /customers", getCustomersHandler)
 	mux.HandleFunc("PUT /customers", updateCustomerHandler)
 	mux.HandleFunc("DELETE /customers/{id}", deleteCustomerHandler)
+
+	mux.HandleFunc("POST /manufacturers", createManufacturerHandler)
 	return mux
 }
 
@@ -120,7 +122,7 @@ func createCustomerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	id, err := data.CreateCustomer(db, &customer)
+	id, err := data.CreateCustomer(db, customer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -191,4 +193,17 @@ func deleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Customer deleted successfully - Customer Id: %d", id)))
+}
+
+func createManufacturerHandler(w http.ResponseWriter, r *http.Request) {
+	var manufacturer models.Manufacturer
+	if err := json.NewDecoder(r.Body).Decode(&manufacturer); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	id, err := data.CreateManufacturer(db, manufacturer)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(fmt.Sprintf("Manufacturer successfully created - Manufacturer Id: %d", id)))
 }
