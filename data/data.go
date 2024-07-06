@@ -6,21 +6,27 @@ import (
 	"log"
 )
 
-// Method for setting up the tables
+// SetupDB Method for setting up the tables
 func SetupDB(db *sql.DB) {
-	db.Exec("CREATE TABLE IF NOT EXISTS manufacturers (" +
+	_, err := db.Exec("CREATE TABLE IF NOT EXISTS manufacturers (" +
 		"ID SERIAL PRIMARY KEY," +
 		"name VARCHAR(255) NOT NULL," +
 		"phone VARCHAR(255) NOT NULL UNIQUE);")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db.Exec("CREATE TABLE IF NOT EXISTS products (" +
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS products (" +
 		"ID SERIAL PRIMARY KEY," +
 		"name VARCHAR(255) NOT NULL," +
 		"price FLOAT NOT NULL," +
 		"size VARCHAR(255)," +
 		"color VARCHAR(255));")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db.Exec("CREATE TABLE IF NOT EXISTS customers (" +
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS customers (" +
 		"ID SERIAL PRIMARY KEY," +
 		"firstName VARCHAR(255) NOT NULL," +
 		"lastName VARCHAR(255) NOT NULL," +
@@ -29,13 +35,19 @@ func SetupDB(db *sql.DB) {
 		"street VARCHAR(255)," +
 		"city VARCHAR(255)," +
 		"country VARCHAR(255));")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	db.Exec("CREATE TABLE IF NOT EXISTS bikes (" +
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS bikes (" +
 		"productID INT references products(id) NOT NULL," +
 		"frameNumber VARCHAR(255) PRIMARY KEY," +
 		"owner INT references customers(id));")
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	_, err := db.Exec("CREATE TABLE IF NOT EXISTS productsmanufacturers (" +
+	_, err = db.Exec("CREATE TABLE IF NOT EXISTS productsmanufacturers (" +
 		"productID INT references products(id) NOT NULL," +
 		"manufacturerID INT references manufacturers(id) NOT NULL," +
 		"PRIMARY KEY (productID, manufacturerID));")
@@ -146,4 +158,14 @@ func GetCustomer(db *sql.DB, id int) (models.Customer, error) {
 	customer.Address.Country = addressCountry.String
 
 	return customer, nil
+}
+
+func UpdateCustomer(db *sql.DB, customer models.Customer) error {
+	err := db.QueryRow("UPDATE customers "+
+		"SET firstname = $1, lastname = $2, phonenumber = $3, email = $4, street = $5, city = $6, country = $7"+
+		"WHERE id = $8", customer.FirstName, customer.LastName, customer.Phone, customer.Email, customer.Address.Street, customer.Address.City, customer.Address.Country, customer.Id)
+	if err.Err() != nil {
+		return err.Err()
+	}
+	return nil
 }

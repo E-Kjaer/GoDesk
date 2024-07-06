@@ -21,6 +21,7 @@ func addRoutes() *http.ServeMux {
 
 	mux.HandleFunc("POST /customers", createCustomerHandler)
 	mux.HandleFunc("GET /customers/{id}", getCustomerHandler)
+	mux.HandleFunc("PUT /customers", updateCustomerHandler)
 	return mux
 }
 
@@ -88,7 +89,7 @@ func updateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := data.UpdateProduct(db, &product)
+	err := data.UpdateProduct(db, product)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -146,4 +147,20 @@ func getCustomerHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
+}
+
+func updateCustomerHandler(w http.ResponseWriter, r *http.Request) {
+	var customer models.Customer
+	if err := json.NewDecoder(r.Body).Decode(&customer); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err := data.UpdateCustomer(db, customer)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Product updated successfully")))
 }
