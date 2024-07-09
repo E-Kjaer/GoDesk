@@ -294,3 +294,16 @@ func DeleteAssociationManufacturers(db *sql.DB, id int, manufacturers []int) err
 	}
 	return nil
 }
+
+func CreateBike(db *sql.DB, bike models.Bike) (string, error) {
+	row := db.QueryRow("INSERT INTO bikes (productid, framenumber) VALUES ($1, $2) RETURNING framenumber;", bike.Id, bike.FrameNumber)
+	if row.Err() != nil {
+		return "", row.Err()
+	}
+	var id string
+	err := row.Scan(&id)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
