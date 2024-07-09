@@ -399,6 +399,10 @@ func addOwner(w http.ResponseWriter, r *http.Request) {
 
 	var m map[string]int
 	err := json.NewDecoder(r.Body).Decode(&m)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	owner := m["owner"]
 
 	err = data.AddOwner(db, framenumber, owner)
