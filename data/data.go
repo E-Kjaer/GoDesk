@@ -284,3 +284,13 @@ func AssociateManufacturers(db *sql.DB, id int, manufacturers []int) error {
 	}
 	return nil
 }
+
+func DeleteAssociationManufacturers(db *sql.DB, id int, manufacturers []int) error {
+	for _, manufacturer := range manufacturers {
+		_, err := db.Exec("DELETE FROM productsmanufacturers WHERE productid = $1 AND manufacturerid = $2", id, manufacturer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -31,7 +31,8 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("PUT /manufacturers", updateManufacturerHandler)
 	mux.HandleFunc("DELETE /manufacturers/{id}", deleteManufacturerHandler)
 
-	mux.HandleFunc("POST /products/{id}", associateManufacturersHandler)
+	mux.HandleFunc("POST /products/{id}/manufacturers", associateManufacturersHandler)
+	mux.HandleFunc("DELETE /products/{id}/manufacturers", removeAssociatedManufacturersHandler)
 	return mux
 }
 
@@ -308,4 +309,24 @@ func associateManufacturersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Manufacturer associated successfully")))
+}
+
+func removeAssociatedManufacturersHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	var manufacturers []int
+	if err := json.NewDecoder(r.Body).Decode(&manufacturers); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = data.DeleteAssociationManufacturers(db, id, manufacturers)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Manufacturers removed successfully")))
 }
