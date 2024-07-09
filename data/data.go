@@ -274,3 +274,13 @@ func DeleteManufacturer(db *sql.DB, id int) error {
 	}
 	return nil
 }
+
+func AssociateManufacturers(db *sql.DB, id int, manufacturers []int) error {
+	for _, manufacturer := range manufacturers {
+		_, err := db.Exec("INSERT INTO productsmanufacturers (productid, manufacturerid) VALUES ($1, $2)", id, manufacturer)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

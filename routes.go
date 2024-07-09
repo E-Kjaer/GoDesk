@@ -30,6 +30,8 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /manufacturers", getManufacturersHandler)
 	mux.HandleFunc("PUT /manufacturers", updateManufacturerHandler)
 	mux.HandleFunc("DELETE /manufacturers/{id}", deleteManufacturerHandler)
+
+	mux.HandleFunc("POST /products/{id}", associateManufacturersHandler)
 	return mux
 }
 
@@ -71,6 +73,7 @@ func getProductHandler(w http.ResponseWriter, r *http.Request) {
 	j, err := json.Marshal(product)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
@@ -85,6 +88,7 @@ func getProductsHandler(w http.ResponseWriter, r *http.Request) {
 	j, err := json.Marshal(products)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
@@ -110,10 +114,12 @@ func deleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	err = data.DeleteProduct(db, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Product deleted successfully - Product Id: %d", id)))
@@ -151,6 +157,7 @@ func getCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	j, err := json.Marshal(customer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -161,10 +168,12 @@ func getCustomersHandler(w http.ResponseWriter, r *http.Request) {
 	customers, err := data.GetCustomers(db)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	j, err := json.Marshal(customers)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
@@ -190,10 +199,12 @@ func deleteCustomerHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	err = data.DeleteCustomer(db, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Customer deleted successfully - Customer Id: %d", id)))
@@ -203,10 +214,12 @@ func createManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	var manufacturer models.Manufacturer
 	if err := json.NewDecoder(r.Body).Decode(&manufacturer); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	id, err := data.CreateManufacturer(db, manufacturer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("Manufacturer successfully created - Manufacturer Id: %d", id)))
@@ -216,14 +229,17 @@ func getManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	manufacturer, err := data.GetManufacturer(db, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	j, err := json.Marshal(manufacturer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
@@ -233,10 +249,12 @@ func getManufacturersHandler(w http.ResponseWriter, r *http.Request) {
 	manufacturers, err := data.GetManufacturers(db)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	j, err := json.Marshal(manufacturers)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
@@ -246,10 +264,12 @@ func updateManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	var manufacturer models.Manufacturer
 	if err := json.NewDecoder(r.Body).Decode(&manufacturer); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	err := data.UpdateManufacturer(db, manufacturer)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Manufacturer updated successfully")))
@@ -259,11 +279,33 @@ func deleteManufacturerHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	err = data.DeleteManufacturer(db, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Manufacturer deleted successfully")))
+}
+
+func associateManufacturersHandler(w http.ResponseWriter, r *http.Request) {
+	var manufacturers []int
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := json.NewDecoder(r.Body).Decode(&manufacturers); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = data.AssociateManufacturers(db, id, manufacturers)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Manufacturer associated successfully")))
 }
