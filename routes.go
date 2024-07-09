@@ -397,9 +397,9 @@ func deleteBikeHandler(w http.ResponseWriter, r *http.Request) {
 func addOwner(w http.ResponseWriter, r *http.Request) {
 	framenumber := r.PathValue("framenumber")
 
-	var m map[string]interface{}
+	var m map[string]int
 	err := json.NewDecoder(r.Body).Decode(&m)
-	owner := int(m["owner"].(float64))
+	owner := m["owner"]
 
 	err = data.AddOwner(db, framenumber, owner)
 	if err != nil {
