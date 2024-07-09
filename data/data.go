@@ -307,3 +307,11 @@ func CreateBike(db *sql.DB, bike models.Bike) (string, error) {
 	}
 	return id, nil
 }
+
+func DeleteBike(db *sql.DB, frameNumber string) error {
+	_, err := db.Exec("DELETE FROM bikes WHERE framenumber = $1", frameNumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}

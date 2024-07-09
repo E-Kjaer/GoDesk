@@ -35,6 +35,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("DELETE /products/{id}/manufacturers", removeAssociatedManufacturersHandler)
 
 	mux.HandleFunc("POST /bikes", createBikeHandler)
+	mux.HandleFunc("DELETE /bikes/{framenumber}", deleteBikeHandler)
 	return mux
 }
 
@@ -346,4 +347,15 @@ func createBikeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fmt.Sprintf("Bike added successfully - Frame number %s", framenumber)))
+}
+
+func deleteBikeHandler(w http.ResponseWriter, r *http.Request) {
+	frameNumber := r.PathValue("framenumber")
+	err := data.DeleteBike(db, frameNumber)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Bike deleted successfully - Frame number %s", frameNumber)))
 }
