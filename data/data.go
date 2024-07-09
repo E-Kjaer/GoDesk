@@ -332,6 +332,32 @@ func GetBike(db *sql.DB, framenumber string) (models.Bike, error) {
 	return bike, nil
 }
 
+func GetBikes(db *sql.DB) ([]models.Bike, error) {
+	var bikes []models.Bike
+	rows, err := db.Query("SELECT * FROM bikes")
+	if err != nil {
+		return bikes, err
+	}
+
+	for rows.Next() {
+		var owner sql.NullInt32
+		var bike models.Bike
+		err := rows.Scan(&bike.Id, &bike.FrameNumber, &owner)
+		if err != nil {
+			return bikes, err
+		}
+		if owner.Valid {
+			owner, err := GetCustomer(db, int(owner.Int32))
+			if err != nil {
+				return bikes, err
+			}
+			bike.Owner = owner
+		}
+		bikes = append(bikes, bike)
+	}
+	return bikes, nil
+}
+
 func DeleteBike(db *sql.DB, frameNumber string) error {
 	_, err := db.Exec("DELETE FROM bikes WHERE framenumber = $1", frameNumber)
 	if err != nil {

@@ -36,6 +36,7 @@ func addRoutes() *http.ServeMux {
 
 	mux.HandleFunc("POST /bikes", createBikeHandler)
 	mux.HandleFunc("GET /bikes/{framenumber}", getBikeHandler)
+	mux.HandleFunc("GET /bikes", getBikesHandler)
 	mux.HandleFunc("DELETE /bikes/{framenumber}", deleteBikeHandler)
 	return mux
 }
@@ -358,6 +359,21 @@ func getBikeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	j, err := json.Marshal(bike)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func getBikesHandler(w http.ResponseWriter, r *http.Request) {
+	bikes, err := data.GetBikes(db)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	j, err := json.Marshal(bikes)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
