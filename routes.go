@@ -38,6 +38,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /bikes/{framenumber}", getBikeHandler)
 	mux.HandleFunc("GET /bikes", getBikesHandler)
 	mux.HandleFunc("DELETE /bikes/{framenumber}", deleteBikeHandler)
+	mux.HandleFunc("POST /bikes/{framenumber}", addOwner)
 	return mux
 }
 
@@ -391,4 +392,20 @@ func deleteBikeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf("Bike deleted successfully - Frame number %s", frameNumber)))
+}
+
+func addOwner(w http.ResponseWriter, r *http.Request) {
+	framenumber := r.PathValue("framenumber")
+
+	var m map[string]interface{}
+	err := json.NewDecoder(r.Body).Decode(&m)
+	owner := int(m["owner"].(float64))
+
+	err = data.AddOwner(db, framenumber, owner)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Owner successfully added - Owner %d | Bike %s", owner, framenumber)))
 }

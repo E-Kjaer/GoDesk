@@ -365,3 +365,11 @@ func DeleteBike(db *sql.DB, frameNumber string) error {
 	}
 	return nil
 }
+
+func AddOwner(db *sql.DB, framenumber string, owner int) error {
+	_, err := db.Query("UPDATE bikes SET owner = $1 WHERE framenumber = $2;", owner, framenumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}
