@@ -308,6 +308,30 @@ func CreateBike(db *sql.DB, bike models.Bike) (string, error) {
 	return id, nil
 }
 
+func GetBike(db *sql.DB, framenumber string) (models.Bike, error) {
+	var owner sql.NullInt32
+	var bike models.Bike
+
+	row := db.QueryRow("SELECT * FROM bikes WHERE framenumber = $1", framenumber)
+	if row.Err() != nil {
+		return bike, row.Err()
+	}
+
+	err := row.Scan(&bike.Id, &bike.FrameNumber, &owner)
+	if err != nil {
+		return bike, err
+	}
+
+	if owner.Valid {
+		owner, err := GetCustomer(db, int(owner.Int32))
+		if err != nil {
+			return bike, err
+		}
+		bike.Owner = owner
+	}
+	return bike, nil
+}
+
 func DeleteBike(db *sql.DB, frameNumber string) error {
 	_, err := db.Exec("DELETE FROM bikes WHERE framenumber = $1", frameNumber)
 	if err != nil {
