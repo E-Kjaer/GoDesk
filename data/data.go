@@ -347,11 +347,11 @@ func GetBikes(db *sql.DB) ([]models.Bike, error) {
 			return bikes, err
 		}
 		if owner.Valid {
-			owner, err := GetCustomer(db, int(owner.Int32))
+			o, err := GetCustomer(db, int(owner.Int32))
 			if err != nil {
 				return bikes, err
 			}
-			bike.Owner = owner
+			bike.Owner = o
 		}
 		bikes = append(bikes, bike)
 	}
@@ -366,8 +366,16 @@ func DeleteBike(db *sql.DB, frameNumber string) error {
 	return nil
 }
 
-func AddOwner(db *sql.DB, framenumber string, owner int) error {
-	_, err := db.Query("UPDATE bikes SET owner = $1 WHERE framenumber = $2;", owner, framenumber)
+func AddOwner(db *sql.DB, frameNumber string, owner int) error {
+	_, err := db.Query("UPDATE bikes SET owner = $1 WHERE framenumber = $2;", owner, frameNumber)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func RemoveOwner(db *sql.DB, frameNumber string) error {
+	_, err := db.Query("UPDATE bikes SET owner = NULL WHERE framenumber = $1;", frameNumber)
 	if err != nil {
 		return err
 	}
