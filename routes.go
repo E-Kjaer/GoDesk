@@ -16,6 +16,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("POST /products", createProductHandler)
 	mux.HandleFunc("GET /products/{id}", getProductHandler)
 	mux.HandleFunc("GET /products", getProductsHandler)
+	mux.HandleFunc("GET /products/size", getProductsBySizeHandler)
 	mux.HandleFunc("PUT /products", updateProductHandler)
 	mux.HandleFunc("DELETE /products/{id}", deleteProductHandler)
 
@@ -45,7 +46,7 @@ func addRoutes() *http.ServeMux {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Welcome to the home page!"))
+	w.Write([]byte("Welcome to the home page of GoDesk!"))
 }
 
 // Functions for manipulating products
@@ -98,6 +99,23 @@ func getProductsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func getProductsBySizeHandler(w http.ResponseWriter, r *http.Request) {
+	var body map[string]string
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	products, err := data.GetProductsBySize(db, body["size"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	j, err := json.Marshal(products)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(j)
