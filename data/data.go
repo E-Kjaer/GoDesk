@@ -126,6 +126,23 @@ func GetProductsBySize(db *sql.DB, size string) ([]models.Product, error) {
 	return products, nil
 }
 
+func GetProductsByColor(db *sql.DB, color string) ([]models.Product, error) {
+	var products []models.Product
+	rows, err := db.Query("SELECT * FROM products WHERE color = $1;", color)
+	if err != nil {
+		return products, nil
+	}
+	for rows.Next() {
+		var product models.Product
+		err = rows.Scan(&product.Id, &product.Name, &product.Price, &product.Size, &product.Color)
+		if err != nil {
+			return products, err
+		}
+		products = append(products, product)
+	}
+	return products, nil
+}
+
 func UpdateProduct(db *sql.DB, product models.Product) error {
 	err := db.QueryRow("UPDATE products "+
 		"SET name = $1, price = $2, size = $3, color = $4 "+

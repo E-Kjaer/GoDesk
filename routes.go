@@ -17,6 +17,7 @@ func addRoutes() *http.ServeMux {
 	mux.HandleFunc("GET /products/{id}", getProductHandler)
 	mux.HandleFunc("GET /products", getProductsHandler)
 	mux.HandleFunc("GET /products/size", getProductsBySizeHandler)
+	mux.HandleFunc("GET /products/color", getProductsByColorHandler)
 	mux.HandleFunc("PUT /products", updateProductHandler)
 	mux.HandleFunc("DELETE /products/{id}", deleteProductHandler)
 
@@ -110,6 +111,24 @@ func getProductsBySizeHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 	products, err := data.GetProductsBySize(db, body["size"])
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	j, err := json.Marshal(products)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(j)
+}
+
+func getProductsByColorHandler(w http.ResponseWriter, r *http.Request) {
+	var body map[string]string
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+	products, err := data.GetProductsByColor(db, body["color"])
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
