@@ -143,6 +143,24 @@ func GetProductsByColor(db *sql.DB, color string) ([]models.Product, error) {
 	return products, nil
 }
 
+func GetProductsByName(db *sql.DB, name string) ([]models.Product, error) {
+	var products []models.Product
+	var paddedName = "%" + name + "%"
+	rows, err := db.Query("SELECT * FROM products WHERE name ILIKE $1", paddedName)
+	if err != nil {
+		return products, err
+	}
+	for rows.Next() {
+		var product models.Product
+		err = rows.Scan(&product.Id, &product.Name, &product.Price, &product.Size, &product.Color)
+		if err != nil {
+			return products, err
+		}
+		products = append(products, product)
+	}
+	return products, nil
+}
+
 func UpdateProduct(db *sql.DB, product models.Product) error {
 	err := db.QueryRow("UPDATE products "+
 		"SET name = $1, price = $2, size = $3, color = $4 "+
